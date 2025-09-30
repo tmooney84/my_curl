@@ -1,16 +1,16 @@
 # Compiler
 CC      := gcc
-CFLAGS  := -Wall -Wextra -Werror -g
+CFLAGS  := -Wall -Wextra -Werror -g -D_POSIX_C_SOURCE=200809L
 
 # Target executable name
-TARGET  := tsh
+TARGET  := my_curl
 
 # Source and object files
-SRC     := tsh.c utils.c builtin_cmds.c
+SRC     := main.c #utils.c builtin_cmds.c
 OBJ     := $(SRC:.c=.o)
 
 # Headers
-HEADERS := utils.h builtin_cmds.h
+HEADERS := #utils.h builtin_cmds.h
 
 all: $(TARGET)
 
