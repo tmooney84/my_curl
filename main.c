@@ -206,19 +206,17 @@ int main(int argc, char **argv)
         }
 
         // -2 capatures the '/' that has been disgarded and '\0'
-        snprintf(get_req, MAX_URL_LEN, "GET %s HTTP/1.1\r\n\
-        Host: %s\r\n\
-        User-Agent: my_curl/1.0 \r\n\
-        */*\r\n\
-        \r\n",
+        snprintf(get_req, MAX_URL_LEN,
+                 "GET %s HTTP/1.1\r\n"
+                 "Host: %s\r\n"
+                 "User-Agent: my_curl/1.0\r\n"
+                 "Accept: */*\r\n"
+                 "Connection: close\r\n" //remove???
+                 "\r\n",
                  path, host);
 
         printf("get request header: \n%s\n", get_req);
     }
-
-    
-
-   
 
     // free request, host, path
 
