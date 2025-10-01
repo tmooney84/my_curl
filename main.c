@@ -41,6 +41,7 @@ $>./my_curl http://www.columbia.edu/~fdc/sample.html
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -49,7 +50,8 @@ $>./my_curl http://www.columbia.edu/~fdc/sample.html
 #include <netinet/in.h>
 
 #define MAX_URL_LEN 2000
-#define MAX_STR_LEN 1024
+#define STR_MAX 1024
+#define INITIAL_BUF 8192
 #define FETCH_STR_LEN 64
 
 // typedef struct http_request_header
@@ -89,7 +91,6 @@ void host_error(char *str)
 void malloc_error()
 {
     perror("Unable to allocate memory.\n");
-    exit(1);
 }
 
 void parse_url(char *url_string, char *host, char *path, enum Protocol *p_type)
@@ -155,6 +156,15 @@ void parse_url(char *url_string, char *host, char *path, enum Protocol *p_type)
     return;
 }
 
+void *get_in_addr(struct sockaddr *sa){
+    if(sa->sa_family == AF_INET){
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+
 int main(int argc, char **argv)
 {
     if (argc == 1)
@@ -186,6 +196,16 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    char *port = malloc(STR_MAX *(sizeof(char)));
+    if(!port){
+        malloc_error();
+        free(host);
+        host = NULL;
+        free(path);
+        path = NULL;
+        exit(1);
+    }
+
     // parse web address
     parse_url(argv[1], host, path, &p_type);
 
@@ -196,14 +216,20 @@ int main(int argc, char **argv)
     //!!!need to somewhere handle non-existant web addresses
 
     //!!!likely call subfunction for build HTTP Header
-    if (p_type == HTTP)
-    {
-        // build request
-        char *get_req = malloc(MAX_STR_LEN * sizeof(char));
+    
+    // build request
+        char *get_req = malloc(STR_MAX * sizeof(char));
         if (!get_req)
         {
             malloc_error();
+            exit(1);
         }
+    
+    if (p_type == HTTP)
+    {
+        strncpy(port, "80", 2);
+        port[2] = '\0';
+        //build http_request_header()
 
         // -2 capatures the '/' that has been disgarded and '\0'
         snprintf(get_req, MAX_URL_LEN,
@@ -218,22 +244,111 @@ int main(int argc, char **argv)
         printf("get request header: \n%s\n", get_req);
     }
 
+    
+    int sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    char s[INET6_ADDRSTRLEN];
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if((rv = getaddrinfo(host, port, &hints, &servinfo)!= 0)){
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
+
+    for(p = servinfo; p != NULL; p = p->ai_next){
+        if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+            perror("client: socket");
+            continue;
+        }
+        
+        if(connect(sockfd, p->ai_addr, p->ai_addrlen)== -1){
+            perror("client: connect");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL){
+        fprintf(stderr, "client: failed to connect\n");
+        return 2;
+    }
+
+    //for testing connection...
+    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
+    printf("client: connecting to %s]n", s);
+
+    freeaddrinfo(servinfo);
+    
+    //sending request packet
+    int get_req_len = strlen(get_req);
+    if(send(sockfd, get_req, get_req_len, 0)== -1){
+        close(sockfd);
+        perror("send");
+        exit(3);
+    }
+
+    size_t bufsize = INITIAL_BUF; 
+    size_t used = 0; 
+    char *response = malloc(bufsize * sizeof(char));
+    if(!response){
+        malloc_error();
+        close(sockfd);
+        exit(1);
+    }
+
+    ssize_t n;
+
+    //receiving response packet(s)
+    while((n = recv(sockfd, response + used, bufsize - used, 0)) > 0){
+        used += n;
+
+        if(used == bufsize){
+            bufsize *= 2;
+            char *tmp = realloc(response, bufsize);
+            if(!tmp){
+                perror("realloc error");
+                free(response);
+                close(sockfd);
+                exit(2);
+            }
+            response = tmp;
+            tmp = NULL;
+        }
+
+    }
+        if(n == -1) perror("recv error");
+
+        close(sockfd);
+
+        response[used] = '\0';
+
+
+    // Print response (debug)
+    printf("=== Full Response ===\n%s\n", response);
+
+
+// -then listen for returning packets
+//     -> entering into packet struct? in order to get the partial string parsed
+
+// -store partial string chunks in full string until all packets are received
+
+// -close connection
+
+// -display entire string
+
+
+
+
+
+    
+
+
     // free request, host, path
 
     return 0;
 }
-
-/*
--create struct to snprintf to create a formatted string
-
--open up a connection using the formatted string as URI
-
--then listen for returning packets
-    -> entering into packet struct? in order to get the partial string parsed
-
--store partial string chunks in full string until all packets are received
-
--close connection
-
--display entire string
-*/
