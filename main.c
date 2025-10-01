@@ -227,28 +227,30 @@ int main(int argc, char **argv)
     
     if (p_type == HTTP)
     {
-        strncpy(port, "80", 2);
+        strcpy(port, "80");
         port[2] = '\0';
         //build http_request_header()
 
-        // -2 capatures the '/' that has been disgarded and '\0'
         snprintf(get_req, MAX_URL_LEN,
                  "GET %s HTTP/1.1\r\n"
                  "Host: %s\r\n"
                  "User-Agent: my_curl/1.0\r\n"
                  "Accept: */*\r\n"
-                 "Connection: close\r\n" //remove???
+                 "Connection: close\r\n"
                  "\r\n",
                  path, host);
 
         printf("get request header: \n%s\n", get_req);
     }
 
+    //int sockfd = tcp_connect(host, "443");
     
+
+
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
-    char s[INET6_ADDRSTRLEN];
+    //char s[INET6_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -279,8 +281,8 @@ int main(int argc, char **argv)
     }
 
     //for testing connection...
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-    printf("client: connecting to %s]n", s);
+    //inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
+    //printf("client: connecting to %s]n", s);
 
     freeaddrinfo(servinfo);
     
@@ -329,8 +331,18 @@ int main(int argc, char **argv)
 
 
     // Print response (debug)
-    printf("=== Full Response ===\n%s\n", response);
+    //printf("=== Full Response ===\n%s\n", response);
 
+
+    char *body = strstr(response, "\r\n\r\n");
+    if(body){
+        *body = '\0';
+        body += 4;
+        //printf("\n=== Headers ===\n%s\n", response);
+        printf("\n=== Body ===\n%s\n", body);
+    }
+
+    free(response);
 
 // -then listen for returning packets
 //     -> entering into packet struct? in order to get the partial string parsed
