@@ -6,11 +6,11 @@ CFLAGS  := -Wall -Wextra -Werror -g -D_POSIX_C_SOURCE=200809L
 TARGET  := my_curl
 
 # Source and object files
-SRC     := main.c #utils.c builtin_cmds.c
+SRC     := main.c client_utils.c 
 OBJ     := $(SRC:.c=.o)
 
 # Headers
-HEADERS := #utils.h builtin_cmds.h
+HEADERS := client_utils.h
 
 all: $(TARGET)
 
