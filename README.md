@@ -2,18 +2,34 @@
 ***
 
 ## Task
-TODO - What is the problem? And where is the challenge?
+The my_curl command is similar to the UNIX curl command and is a tool that requests data from a server, using HTTP.
 
 ## Description
-TODO - How have you solved the problem?
+my_curl processes web addresses and then uses the Sockets API to connect to the appropriate server. After establishing a connection, it sends an HTTP GET Request packet to the given http web server and parses the response in order to aquire the raw body of the webpage that is then printed to screen for the user.
 
 ## Installation
-TODO - How to install your project? npm install? make? make re?
+git clone git@git.us.qwasar.io:my_curl_186297_6zs15z/my_curl.git 
+
+Navigate into my_curl folder
+```
+cd my_curl
+```
+
+Compile Program:
+```
+make my_curl
+```
 
 ## Usage
-TODO - How does it work?
+
+To Use:
 ```
-./my_project argument1 argument2
+./my_curl <http web address> 
+```
+
+For Example:
+```
+./my_curl http://www.columbia.edu/~fdc/sample.html
 ```
 
 ### The Core Team
