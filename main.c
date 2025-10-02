@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     char * body = process_body(response);
 
         //printf("\n=== Body ===\n%s\n", body);
-        printf("%s\n", body);
+        printf("%s", body);
 
     //free heap data
     free(body);
