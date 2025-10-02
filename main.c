@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     if (send(sockfd, get_req, get_req_len, 0) == -1)
     {
         close(sockfd);
-        perror("send");
+        //perror("send");
         exit(3);
     }
 
