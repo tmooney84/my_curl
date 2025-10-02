@@ -32,6 +32,6 @@ void *get_in_addr(struct sockaddr *sa);
 int tcp_connect(char *host, char *port);
 void build_http_request(char *host, char *path, char *port, char* get_req);
 char *process_body(char *response);
-void expand_buf(char *response, size_t bufsize, int sockfd);
+void expand_buf(char **response, size_t *bufsize, int sockfd);
 
 #endif

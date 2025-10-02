@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 
         if (used == bufsize)
         {
-            expand_buf(response, bufsize, sockfd);
+            expand_buf(&response, &bufsize, sockfd);
         }
     }
 

@@ -151,18 +151,18 @@ int tcp_connect(char *host, char *port)
     return sockfd;
 }
 
-void expand_buf(char *response, size_t bufsize, int sockfd)
+void expand_buf(char **response, size_t *bufsize, int sockfd)
 {
-    bufsize *= 2;
-    char *tmp = realloc(response, bufsize);
+    *bufsize *= 2;
+    char *tmp = realloc(*response, *bufsize);
     if (!tmp)
     {
         perror("realloc error");
-        free(response);
+        free(*response);
         close(sockfd);
         exit(2);
     }
-    response = tmp;
+    *response = tmp;
     tmp = NULL;
 }
 
